@@ -18,11 +18,13 @@ module RateTimeEntryPatch
   module ClassMethods
     # Updated the cached cost of all TimeEntries for user and project
     def update_cost_cache(user, project=nil)
-      c = ARCondition.new
-      c << ["#{TimeEntry.table_name}.user_id = ?", user]
-      c << ["#{TimeEntry.table_name}.project_id = ?", project] if project
+      c = TimeEntry.scoped :conditions => ["#{TimeEntry.table_name}.user_id = ?",
+                                           user]
+      if project
+        c = c.scoped :conditions => ["#{TimeEntry.table_name}.project_id = ?", project] 
+      end
       
-      TimeEntry.all(:conditions => c.conditions).each do |time_entry|
+      c.find_each do |time_entry|
         time_entry.save_cached_cost
       end
     end
