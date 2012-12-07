@@ -10,9 +10,9 @@ class RateProjectHook < Redmine::Hook::ViewListener
   # Context:
   # * :project => Current project
   #
-  def view_projects_settings_members_table_header(context ={ })
+  def view_projects_settings_members_table_header(context={})
     return '' unless (User.current.allowed_to?(:view_rate, context[:project]) || User.current.admin?)
-    return "<th>#{l(:rate_label_rate)} #{l(:rate_label_currency)}</td>"
+    return content_tag(:th, "#{l(:rate_label_rate)} #{l(:rate_label_currency)}")
   end
 
   # Renders an AJAX from to update the member's billing rate
@@ -22,64 +22,29 @@ class RateProjectHook < Redmine::Hook::ViewListener
   # * :member => Current Member record
   #
   # TODO: Move to a view
-  def view_projects_settings_members_table_row(context = { })
-    member = context[:member]
-    project = context[:project]
-
-    return '' unless (User.current.allowed_to?(:view_rate, project) || User.current.admin?)
+  def view_projects_settings_members_table_row(context={})
+    return '' unless (User.current.allowed_to?(:view_rate, context[:project]) || User.current.admin?)
 
     if Object.const_defined? 'Group' # 0.8.x compatibility
       # Groups cannot have a rate
-      return content_tag(:td,'') if member.principal.is_a? Group
-      rate = Rate.for(member.principal, project)
+      return content_tag(:td,'') if context[:member].principal.is_a? Group
+      rate = Rate.for(context[:member].principal, context[:project])
     else
-      rate = Rate.for(member.user, project)
+      rate = Rate.for(context[:member].user, context[:project])
     end
 
-    content = ''
-
-    if rate.nil? || rate.default?
-      if rate && rate.default?
-        content << "<em>#{number_to_currency(rate.amount)}</em> "
-      end
-
-      if (User.current.admin?)
-
-      url = {
-        :controller => 'rates',
-        :action => 'create',
-        :method => :post,
-        :protocol => Setting.protocol,
-        :host => Setting.host_name
+    return context[:controller].send(:render_to_string, {
+      partial: "projects/settings_members",
+      locals: {
+        form_url: {
+          :controller => 'rates',
+          :action => 'create'
+        },
+        rate: rate,
+        member: context[:member],
+        project: context[:project]
       }
-      form = form_tag(url, :remote => true)
-      form << text_field(:rate, :amount)
-      form << hidden_field(:rate,:date_in_effect, :value => Date.today.to_s)
-      form << hidden_field(:rate, :project_id, :value => project.id)
-      form << hidden_field(:rate, :user_id, :value => member.user.id)
-      form << hidden_field_tag("back_url", url_for(:controller => 'projects', :action => 'settings', :id => project, :tab => 'members', :protocol => Setting.protocol, :host => Setting.host_name))
-
-      form << submit_tag(l(:rate_label_set_rate), :class => "small")
-      form << "</form>"
-
-      content << form
-      end
-    else
-      if (User.current.admin?)
-
-      content << content_tag(:strong, link_to(number_to_currency(rate.amount), {
-                                                :controller => 'users',
-                                                :action => 'edit',
-                                                :id => member.user,
-                                                :tab => 'rates',
-                                                :protocol => Setting.protocol,
-                                                :host => Setting.host_name
-                                              }))
-      else
-        content << content_tag(:strong, number_to_currency(rate.amount))
-      end
-    end
-    return content_tag(:td, content, :align => 'left', :id => "rate_#{project.id}_#{member.user.id}" )
+    })
   end
 
   def model_project_copy_before_save(context = {})

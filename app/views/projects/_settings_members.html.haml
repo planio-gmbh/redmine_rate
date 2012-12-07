@@ -1,0 +1,18 @@
+%td{:align => "left", :id => "rate_#{project.id}_#{member.user.id}"}
+  - if rate.nil? || rate.default?
+    - if rate && rate.default?
+      %em #{number_to_currency(rate.amount)}
+    - if User.current.admin?
+      = form_tag form_url, :method => :post, :remote => true do
+        = text_field :rate, :amount, :size => 8
+        = hidden_field(:rate,:date_in_effect, :value => Date.today.to_s)
+        = hidden_field(:rate, :project_id, :value => project.id)
+        = hidden_field(:rate, :user_id, :value => member.user.id)
+        = hidden_field_tag("back_url", url_for(:controller => 'projects', :action => 'settings', :id => project, :tab => 'members'))
+        = submit_tag(l(:rate_label_set_rate), :class => "small")
+  - else
+    %strong
+      - if User.current.admin?
+        = link_to number_to_currency(rate.amount), :controller => 'users', :action => 'edit', :id => member.user, :tab => 'rates'
+      - else
+        = number_to_currency(rate.amount)
