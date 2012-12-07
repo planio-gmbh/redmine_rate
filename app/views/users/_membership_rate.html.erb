@@ -5,7 +5,6 @@
         <% if rate && rate.default? %>
           <em><%= number_to_currency(rate.amount) %></em>
         <% end %>
-        aaa
         <%= form_for(:rate, :url => rates_path(:format => 'js'), :remote => true) do |f| %>
           <%= f.text_field :amount %>
           <%= f.hidden_field :date_in_effect, :value => Date.today.to_s, :id => "" %>
