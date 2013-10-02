@@ -22,7 +22,7 @@ module RateTimeEntryPatch
       c = "#{TimeEntry.table_name}.user_id = %d" % [user.id]
       c << " AND #{TimeEntry.table_name}.project_id = %d" % [project.id] if project
       
-      TimeEntry.all(:conditions => c ).each do |time_entry|
+      TimeEntry.find_each(:conditions => c ) do |time_entry|
         time_entry.save_cached_cost
       end
     end

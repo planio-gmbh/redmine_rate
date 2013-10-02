@@ -73,7 +73,7 @@ class Rate < ActiveRecord::Base
 
   def self.update_all_time_entries_with_missing_cost(options={})
     with_common_lockfile(options[:force]) do
-      TimeEntry.all(:conditions => {:cost => nil}).each do |time_entry|
+      TimeEntry.find_each(:conditions => {:cost => nil}) do |time_entry|
         begin
           time_entry.save_cached_cost
         rescue Rate::InvalidParameterException => ex
