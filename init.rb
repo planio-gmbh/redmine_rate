@@ -1,23 +1,4 @@
-require 'redmine'
-
-# Patches to the Redmine core
-ActionDispatch::Callbacks.to_prepare do
-  gem 'lockfile'
-
-  require_dependency 'application_controller'
-  ApplicationController.send(:include, RateHelper)
-  ApplicationController.send(:helper, :rate)
-
-  require_dependency 'time_entry'
-  TimeEntry.send(:include, RateTimeEntryPatch)
-
-  require_dependency 'users_helper'
-  UsersHelper.send(:include, RateUsersHelperPatch) unless UsersHelper.included_modules.include?(RateUsersHelperPatch)
-end
-
-# Hooks
-require_dependency 'rate_project_hook'
-require_dependency 'rate_memberships_hook'
+require 'redmine_rate'
 
 Redmine::Plugin.register :redmine_rate do
   name 'Rate'
@@ -39,10 +20,12 @@ Redmine::Plugin.register :redmine_rate do
   menu :admin_menu, :rate_caches, { :controller => 'rate_caches', :action => 'index'}, :caption => :text_rate_caches_panel
 end
 
-require 'redmine_rate/hooks/timesheet_hook_helper'
-require 'redmine_rate/hooks/plugin_timesheet_views_timesheets_time_entry_row_class_hook'
-require 'redmine_rate/hooks/plugin_timesheet_views_timesheet_group_header_hook'
-require 'redmine_rate/hooks/plugin_timesheet_views_timesheet_time_entry_hook'
-require 'redmine_rate/hooks/plugin_timesheet_views_timesheet_time_entry_sum_hook'
-require 'redmine_rate/hooks/plugin_timesheet_view_timesheets_report_header_tags_hook'
-require 'redmine_rate/hooks/view_layouts_base_html_head_hook'
+Rails.configuration.to_prepare do
+  ApplicationController.send(:include, RateHelper)
+  ApplicationController.send(:helper, :rate)
+
+  TimeEntry.send(:include, RedmineRate::TimeEntryPatch) unless TimeEntry.included_modules.include? RedmineRate::TimeEntryPatch
+  UsersHelper.send(:include, RedmineRate::UsersHelperPatch) unless UsersHelper.included_modules.include? RedmineRate::UsersHelperPatch
+end
+
+

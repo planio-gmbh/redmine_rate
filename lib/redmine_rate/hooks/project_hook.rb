@@ -15,7 +15,7 @@ class RateProjectHook < Redmine::Hook::ViewListener
     return content_tag(:th, "#{l(:rate_label_rate)} #{l(:rate_label_currency)}")
   end
 
-  # Renders an AJAX from to update the member's billing rate
+  # Renders an AJAX form to update the member's billing rate
   #
   # Context:
   # * :project => Current project
@@ -25,13 +25,9 @@ class RateProjectHook < Redmine::Hook::ViewListener
   def view_projects_settings_members_table_row(context={})
     return '' unless (User.current.allowed_to?(:view_rate, context[:project]) || User.current.admin?)
 
-    if Object.const_defined? 'Group' # 0.8.x compatibility
-      # Groups cannot have a rate
-      return content_tag(:td,'') if context[:member].principal.is_a? Group
-      rate = Rate.for(context[:member].principal, context[:project])
-    else
-      rate = Rate.for(context[:member].user, context[:project])
-    end
+    # Groups cannot have a rate
+    return content_tag(:td,'') if context[:member].principal.is_a? Group
+    rate = Rate.for(context[:member].principal, context[:project])
 
     return context[:controller].send(:render_to_string, {
       partial: "projects/settings_members",
