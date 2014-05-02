@@ -1,0 +1,18 @@
+cs:
+  rate_label_rates: Míra
+  rate_label_rate: Míra
+  rate_label_rate_history: Historie míry
+  rate_label_new_rate: Nová míra
+  rate_label_currency: Kč
+  rate_error_user_not_found: Uživatel nebyl nalezen
+  rate_label_set_rate: Nastavit míru
+  rate_label_default: Výchozí míra
+  rate_cost: Cena
+  text_rate_caches_panel: "Míra mezipaměti"
+  text_no_cache_run: "nebyla nalezena žádná běžící mezipaměť"
+  text_last_caching_run: "Poslední spuštěná mezipaměť: "
+  text_last_cache_clearing_run: "Poslední čištění mezipaměti: "
+  text_load_missing_caches: "Nahrát chybějící mezipaměť"
+  text_clear_and_load_all_caches: "Vyčistit a nahrát všechny mezipaměti"
+  text_caches_loaded_successfully: "Mezipaměti byly nahrány"
+  permission_view_rate: "Zobrazit míry"
