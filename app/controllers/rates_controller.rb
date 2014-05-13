@@ -7,6 +7,7 @@ class RatesController < ApplicationController
   before_filter :require_admin
   before_filter :require_user_id, :only => [:index, :new]
   before_filter :set_back_url
+  accept_api_auth :index, :show, :create, :update, :destroy
 
   ValidSortOptions = {'date_in_effect' => "#{Rate.table_name}.date_in_effect", 'project_id' => "#{Project.table_name}.name"}
 
