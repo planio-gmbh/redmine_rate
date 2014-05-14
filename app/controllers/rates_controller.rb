@@ -7,11 +7,13 @@ class RatesController < ApplicationController
   before_filter :require_admin
   before_filter :require_user_id, :only => [:index, :new]
   before_filter :set_back_url
-  
+  accept_api_auth :index, :show, :create, :update, :destroy
+
   ValidSortOptions = {'date_in_effect' => "#{Rate.table_name}.date_in_effect", 'project_id' => "#{Project.table_name}.name"}
-  
+
   # GET /rates?user_id=1
   # GET /rates.xml?user_id=1
+  # GET /rates.json?user_id=1
   def index
     sort_init "#{Rate.table_name}.date_in_effect", "desc"
     sort_update ValidSortOptions
@@ -21,17 +23,20 @@ class RatesController < ApplicationController
     respond_to do |format|
       format.html { render :action => 'index', :layout => !request.xhr?}
       format.xml  { render :xml => @rates }
+      format.json  { render :json => @rates }
     end
   end
 
   # GET /rates/1
   # GET /rates/1.xml
+  # GET /rates/1.json
   def show
     @rate = Rate.find(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb
       format.xml  { render :xml => @rate }
+      format.json  { render :json => @rate }
     end
   end
 
@@ -53,6 +58,7 @@ class RatesController < ApplicationController
 
   # POST /rates
   # POST /rates.xml
+  # POST /rates.json
   def create
     @rate = Rate.new(params[:rate])
 
@@ -63,11 +69,13 @@ class RatesController < ApplicationController
           redirect_back_or_default(rates_url(:user_id => @rate.user_id))
         }
         format.xml  { render :xml => @rate, :status => :created, :location => @rate }
+        format.json  { render json => @rate, :status => :created, :location => @rate }
         format.js { render :action => 'create.js.rjs'}
       else
         format.html { render :action => "new" }
         format.xml  { render :xml => @rate.errors, :status => :unprocessable_entity }
-        format.js { 
+        format.json  { render :json => @rate.errors, :status => :unprocessable_entity }
+        format.js {
           flash.now[:error] = 'Error creating a new Rate.'
           render :action => 'create_error.js.rjs'
         }
@@ -77,6 +85,7 @@ class RatesController < ApplicationController
 
   # PUT /rates/1
   # PUT /rates/1.xml
+  # PUT /rates/1.json
   def update
     @rate = Rate.find(params[:id])
 
@@ -86,6 +95,7 @@ class RatesController < ApplicationController
         flash[:notice] = 'Rate was successfully updated.'
         format.html { redirect_back_or_default(rates_url(:user_id => @rate.user_id)) }
         format.xml  { head :ok }
+        format.json  { head :ok }
       else
         if @rate.locked?
           flash[:error] = "Rate is locked and cannot be edited"
@@ -93,12 +103,14 @@ class RatesController < ApplicationController
         end
         format.html { render :action => "edit" }
         format.xml  { render :xml => @rate.errors, :status => :unprocessable_entity }
+        format.json  { render :json => @rate.errors, :status => :unprocessable_entity }
       end
     end
   end
 
   # DELETE /rates/1
   # DELETE /rates/1.xml
+  # DELETE /rates/1.json
   def destroy
     @rate = Rate.find(params[:id])
     @rate.destroy
@@ -109,11 +121,12 @@ class RatesController < ApplicationController
         redirect_back_or_default(rates_url(:user_id => @rate.user_id))
       }
       format.xml  { head :ok }
+      format.json  { head :ok }
     end
   end
-  
+
   private
-  
+
   def require_user_id
     begin
       @user = User.find(params[:user_id])
@@ -122,20 +135,21 @@ class RatesController < ApplicationController
         flash[:error] = l(:rate_error_user_not_found)
         format.html { redirect_to(home_url) }
         format.xml  { render :xml => "User not found", :status => :not_found }
+        format.json  { render :json => "User not found", :status => :not_found }
       end
     end
   end
-  
+
   def set_back_url
     @back_url = params[:back_url]
     @back_url
   end
-  
+
   # Override defination from ApplicationController to make sure it follows a
   # whitelist
   def redirect_back_or_default(default)
     whitelist = %r{(rates|/users/edit)}
-    
+
     back_url = CGI.unescape(params[:back_url].to_s)
     if !back_url.blank?
       begin
